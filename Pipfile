@@ -3,11 +3,16 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
+[[source]]
+url = "https://pypi.taichi.graphics/simple/"
+verify_ssl = true
+name = "pypitaichi"
+
 [packages]
-taichi = "*"
-matplotlib = "*"
 numpy = "*"
 scipy = "*"
+matplotlib = "*"
+taichi-nightly = {version = "*", index = "pypitaichi"}
 
 [dev-packages]
 

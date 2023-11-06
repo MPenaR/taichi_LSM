@@ -1,9 +1,9 @@
 import taichi as ti
-
+import numpy as np
 
 @ti.dataclass
 class ComplexScalarField:
-    z : ti.types.vector[2]
+    z = ti.types.vector(2, dtype=np.float32)
     def __init__(self, val : complex ):
             self.z[0], self.z[1] = val.real, val.imag
     

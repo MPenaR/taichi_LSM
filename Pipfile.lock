@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c6247dfc0e0ac8a2424484e680ca42db70ad9ca8b629974e21eeb1cb7ac21aef"
+            "sha256": "623a8a858c78f6102e78cb70023ea6c36b682b752ed10107df986c21e62176f7"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -11,6 +11,11 @@
             {
                 "name": "pypi",
                 "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            },
+            {
+                "name": "pypitaichi",
+                "url": "https://pypi.taichi.graphics/simple/",
                 "verify_ssl": true
             }
         ]
@@ -427,7 +432,7 @@
                 "sha256:0123cacc1627ae19ddf3c27a5de5bd67ee4586fbdd6440d9748f8abb483d3e86",
                 "sha256:961d03dc3453ebbc59dbdea9e4e11c5651520a876d0f4db161e8674aae935da9"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==2.8.2"
         },
         "rich": {
@@ -475,39 +480,39 @@
                 "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926",
                 "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"
             ],
-            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2'",
+            "markers": "python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'",
             "version": "==1.16.0"
         },
-        "taichi": {
+        "taichi-nightly": {
             "hashes": [
-                "sha256:0fd4fa13ade70795ca6c516ee37f58158bda49eb692d5bb4f8bb53949152d0df",
-                "sha256:1a17dedd30cbf7226ff97785bdc6a3e04e15649cced296ceb2d3a0e2f5c93548",
-                "sha256:1c1bcc73c57d4a4674efd8dfaff53cd4fe7b8a256efe498e79644e3dc6d630c0",
-                "sha256:2a5c5fe541373c2ac713f1df05db575f542357b9388198b842d4fede01274bb2",
-                "sha256:2d5ad5a227f7c06366e1d3f1af5a0527367f71c3e18f453c0272cda6c2ef1fc7",
-                "sha256:317290d22f3ebd557295ec5770213b712102d78a1145154cb1de1257a18ac94c",
-                "sha256:4f725baee771587421132731c5a369e8b3c20081ff12f6363096645f47e06a30",
-                "sha256:519726573209820aedeaac1e1ca562aff2d9e1c13ee2b9fefd48200938812cc7",
-                "sha256:5862790a00b032691944c2e777033415c171908aea77c682d0dbeba0400b5a2a",
-                "sha256:6190db2e09ea270cfe79cf8e55baed8dd293eaad40d908147c8ac415cafc5906",
-                "sha256:67ba28f1664071bc69dc32824fe7a4c1b31f0381f489164b321265c652c8566d",
-                "sha256:708bf92d12d7a4af4932e89bdcf6a5d9626d160b2f37722989100cb7e020e3c0",
-                "sha256:77b55a61705b70eb5b8f185e65aa8feb9e2b478bb94251438f7a1b4a887440e5",
-                "sha256:805a04fbf1d3a87f8019ad79f2a632c23fc58b76818495cda837208a7f3f36e3",
-                "sha256:8c3a4ac8985e9bb1b10973e75399bef3cb3f08a5f75d43d48198004111c077d2",
-                "sha256:8d2215fc78e3b264658ebeb53c08eafbcbe7e1875a92e9508acd83bd5370f87e",
-                "sha256:91dd004687897a321cf0a0f36e09bf0e7d0b303b3b3e6c4bc698972b9b01eefb",
-                "sha256:9f82e85b55c6842d2999be6dd112430b572635d98c92d8631a413688f61fbf49",
-                "sha256:b7841b1a5660cf5d989ad5d562a3e59312722ed63598d4be16c21b87b9e9b019",
-                "sha256:ce6f359c47b9c13b962f21671e6fe5194538f1c70057f5321d095ba11babe7c8",
-                "sha256:d894aff54cb8dfdb86fdbcdca74178544fdddc147f3668423e8f5e3434ca8d3c",
-                "sha256:de1d8210b0d796871f6b634c838aba33a37dbaad88284f2ab28dfea1be0d9f7d",
-                "sha256:dfb15ddeab99039d5364e69448d599a57a43b3948561edf9bbba17c56e7d7bf1",
-                "sha256:f9e312d0d92c6059a301804a6adc69264150ed78964ef2ddfd7473c1ea029908"
+                "sha256:049fded11c6f1a3d88dd1a61d220f6bf6e7d2a16158e54c1bf9bc35724126e92",
+                "sha256:16c762f4211ab07b59855fb51efc1cd49d04ba7e39fb2272eaecc86d46f8eb25",
+                "sha256:230aa0b9d338ed1a0e76effba6b308c1aee34d28e7f9f742befb9fed9e69c4f3",
+                "sha256:25e89032dbf691509423884945122c56fb8818038abc3e117f3ea26e6b1dc2dd",
+                "sha256:2b899b679fc2daf412a350ed7868245b253188642cb484d65141c14766d14437",
+                "sha256:30bbf14b2f4ac2699321cb181f9a7a00cacd4cbd9f1af3841926e07410c05d45",
+                "sha256:5172e6dc1fbd22e703cd6f98632987ffccbfd1592ab5ab6ccdee2eba693cfc1b",
+                "sha256:58385335f242799bdc25e8f4405d9640d8b2d265314c65d0dcaab26532d7fb48",
+                "sha256:5f7f08134848f94e99b0e01a0f79af5680ee0e2da055632055964ea353c1b819",
+                "sha256:66c94a158ac19427e991c05d5f0ce1d1af13a74397166a6a0c51ec88fd4b7d94",
+                "sha256:7d77b4ae37b3d20b9e50bc99202729c6ed2cc39c5d7c633332b02872e8cdc18d",
+                "sha256:841200e5274d6cafe1d0042f3b1e8aa0fd9b5169ca666cb9a96a4b4424078052",
+                "sha256:97bd7998bae93141632c47863c1afb70e027dde077d362b5323b511bd3b54d5f",
+                "sha256:9827da6ddee24af3fcd1b0cb6fc4ba03d4fbc149fbf3b2f1e3c8a7f89dcf7df0",
+                "sha256:99cfa39d9a62e4150a48647c3487a4fc85b9e860ad9cbacba860813725b42db5",
+                "sha256:9b986555580a7397c9cfece569bcc4be5c67f514af71607a0b41b256154f9197",
+                "sha256:b2562462dcec60c7f17070d71db6cb06ef74712d5491838f0650cd0fb3fa4dd2",
+                "sha256:be5966ff838009690631c190385cbc0c4836df38c9874aa1767e26653b2ba02b",
+                "sha256:ca58b083ab9d9f8575f7a0c70a9656b50340b3361729d7f572af61ee392fcd1e",
+                "sha256:ccea897ef4ae570562e3227652dfff3b51b786a738ca274a28ef087d9e470b82",
+                "sha256:d2f64e79717e8b1755f234a58e52c248bc552242b665b0b4e302fc71b603b95a",
+                "sha256:e00a6fdc998e675788e2e5b6a8a3a3ad31e82051b77aee7b2bb05aecf475ba9e",
+                "sha256:e4bde1d8ce2903915f97d0ee1808bc3a364238e69a68acaa474e3ea74a76c2dc",
+                "sha256:f1ca245efc91d2f487315090605d5ceb9108aab75355fe36e7e73ec830b0192e"
             ],
-            "index": "pypi",
-            "markers": "python_version < '3.12' and python_version >= '3.6'",
-            "version": "==1.6.0"
+            "index": "pypitaichi",
+            "markers": "python_version >= '3.6' and python_version < '4.0'",
+            "version": "==1.7.0.post20231103"
         }
     },
     "develop": {}
