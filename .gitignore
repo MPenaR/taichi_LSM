@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#results folders
+src/results*
+
+
 # C extensions
 *.so
 
