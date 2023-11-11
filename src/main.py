@@ -3,8 +3,9 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import colormaps
 import numpy as np
+import numpy.typing as npt
 import taichi as ti
-from scipy.special import hankel1
+from scipy.special import j0, y0
 
 from databases import FresnelDatabase
 
@@ -19,14 +20,13 @@ database.load(Path("../Fresnel_Data") / "uTM_shaped.txt")
 
 FF = database.FarField()
 
-M = 1200
-N = 800
+M = 100
+N = 100
 
 res = (M,N)
 
 Lx = 0.3
 Ly = Lx * N / M
-
 
 x_R, y_R = database.r_R
 N_E = database.N_E
@@ -46,13 +46,10 @@ kappa = database.kappa
 u, s, vh = np.linalg.svd(FF, full_matrices=True)
 
 
-# r_x = np.subtract.outer(X, x_R)
-# r_y = np.subtract.outer(Y, y_R)
 
 ggui = True
 arch = ti.vulkan if ggui else ti.gpu
 ti.init(arch=arch, unrolling_limit=0)
-
 
 
 
@@ -65,27 +62,45 @@ ub2 = ti.field( dtype= mat_N_E_N_F, shape=res)
 
 
 X, Y = np.meshgrid( np.linspace(-Lx,Lx,M, dtype=np.float32), np.linspace(-Ly,Ly,N, dtype=np.float32), indexing='ij')
-
 x = ti.field(dtype=ti.f32, shape=res)
 x.from_numpy(X)
-
 y = ti.field(dtype=ti.f32, shape=res)
 y.from_numpy(Y)
 
 k = ti.Vector(kappa)
 
-@ti.kernel
-def compute_ub_squared():
-    for i, j in ub2:
-        r_x = x_R - x[i,j]
-        r_y = y_R - y[i,j]
-        b = 1j/4 * hankel1(0, np.multiply.outer( k, np.sqrt( r_x**2 + r_y**2) ))
-        for f in ti.static(range(N_F)):
-            ubub = np.abs(np.dot(u[f,:,:N_E], b[f,:]))**2
-            for r in ti.static(range(N_E)):
-                ub2[i,j][k,r] = ubub[r]
 
-compute_ub_squared()
+vec32 = npt.NDArray[np.float32]
+def compute_b( X : vec32, Y : vec32, x_R : vec32, y_R : vec32, k : vec32) -> tuple[vec32, vec32]:
+    r_x = np.subtract.outer(X, x_R)
+    r_y = np.subtract.outer(Y, y_R)
+    kr = np.multiply.outer( k, np.sqrt( r_x**2 + r_y**2))
+    b_R = -1 / 4 * y0(kr)
+    b_I =  1 / 4 * j0(kr)
+    return ( b_R, b_I )
+
+b_R, b_I = compute_b( X, Y, x_R, y_R, kappa)
+
+b = ti.Narray(ti.types.vector(n=2,dtype=ti.f32), shape=(N_F, *res))
+
+
+@ti.kernel
+def compute_ub2( b : ti.ndarray):
+
+
+
+# @ti.kernel
+# def compute_ub_squared():
+#     for i, j in ub2:
+#         r_x = x_R - x[i,j]
+#         r_y = y_R - y[i,j]
+#         b = 1j/4 * hankel1(0, np.multiply.outer( k, np.sqrt( r_x**2 + r_y**2) ))
+#         for f in ti.static(range(N_F)):
+#             ubub = np.abs(np.dot(u[f,:,:N_E], b[f,:]))**2
+#             for r in ti.static(range(N_E)):
+#                 ub2[i,j][k,r] = ubub[r]
+
+# compute_ub_squared()
 
 # print(f'{b.shape = }') # (8, 1200, 800, 72)
 

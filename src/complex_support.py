@@ -1,14 +1,14 @@
 import taichi as ti
 import numpy as np
 
-@ti.dataclass
+@ti.data_oriented
 class ComplexScalarField:
-    z = ti.types.vector(2, dtype=np.float32)
     def __init__(self, val : complex ):
-            self.z[0], self.z[1] = val.real, val.imag
-    
-    def prod(self, other : ComplexScalarField) -> ComplexScalarField:
-          return ComplexScalarField( self.z * other.z )
+        self.val = ti.Vector( arr= (val.real, val.imag ), dt = ti.f32 )
+
+    @ti.kernel
+    def prod(self : ComplexScalarField, other : ComplexScalarField) -> ComplexScalarField:
+        return ComplexScalarField( self.z * other.z )
          
 
           
@@ -16,4 +16,4 @@ class ComplexScalarField:
 if __name__ == "__main__":
       z1 = ComplexScalarField(1 + 1j)
       z2 = ComplexScalarField(1 - 1j)
-      print( (z1.prod(z2)).z)
+      print( (prod(z1, z2)).z)
