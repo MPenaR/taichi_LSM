@@ -1,6 +1,9 @@
 from pathlib import Path
+import io
+
 from time import perf_counter
 import matplotlib.pyplot as plt
+import matplotlib
 from matplotlib.pyplot import colormaps
 import numpy as np
 import numpy.typing as npt
@@ -21,8 +24,8 @@ database.load(Path("../Fresnel_Data") / "uTM_shaped.txt")
 
 FF = database.FarField()
 
-M = 400
-N = 400
+M = 100
+N = 100
 
 res = (M,N)
 
@@ -73,17 +76,19 @@ UBUB = ti.ndarray( dtype= ti.types.matrix(n=N_F, m=N_E, dtype=ti.f64), shape = r
 
 UBUB.from_numpy(ubub)
 
-big_res = (4*N, 2*N)
-window = ti.ui.Window(f'single frequency', res=big_res)
-canvas = window.get_canvas()
-np_pix = np.zeros(dtype=np.uint8,shape=( N_F, *res))
-pixels = ti.field(dtype=ti.f32, shape = res)
-big_pix = ti.field(dtype=ti.f32, shape = big_res)
-np_big_pix = np.zeros(dtype=np.uint8,shape=big_res)
+
+
 ind = ti.field(dtype=ti.f32, shape = res)
 
 S = ti.ndarray(dtype=ti.f64, shape=(N_F, N_E))
 S.from_numpy(s)
+
+DPI = 100
+matplotlib.use('Agg')
+fig, ax = plt.subplots(ncols=4, nrows=2, figsize=(8,6),dpi=DPI)
+window = ti.ui.Window(f'single frequency', res=(8*DPI,6*DPI))
+canvas = window.get_canvas()
+pixels = ti.field(dtype=ti.f32, shape = (8*DPI,6*DPI))
 
 @ti.kernel
 def mono_LSM( UBUB : ti.types.ndarray(), S : ti.types.ndarray(), a : ti.f32, l : ti.f32, k : int ):
@@ -91,7 +96,6 @@ def mono_LSM( UBUB : ti.types.ndarray(), S : ti.types.ndarray(), a : ti.f32, l :
         for n in ti.static(range(N_E)):
             ind[i,j] += (S[k,n]/(S[k,n]**2 + a))**2*UBUB[i,j][k,n]
         ind[i,j] = 1. / ti.sqrt(ind[i,j])
-        pixels[i,j] = ti.u8(255) if ind[i,j] > l else ti.u8(0)
 
 # cmap = colormaps["viridis"]
 #Visualization
@@ -100,14 +104,15 @@ while window.running:
     l = 0.01*(mouse_y) + 0.988
     a = 1E-1*mouse_x
     print(f'{l= : .6f} {a= : .6f}', end='\r')
-    for k in range(len(kappa)):
-        mono_LSM(UBUB, S, a, l, k )
-        np_pix[k,:,:] = pixels.to_numpy()
-    
-    np_big_pix[:, N: ] = np.fliplr(np.concatenate( [ np_pix[k,:,:] for k in range(4)   ], axis=0 ) )
-    np_big_pix[:,  :N] = np.fliplr(np.concatenate( [ np_pix[k,:,:] for k in range(4,8) ], axis=0 ) )
-    big_pix.from_numpy(np_big_pix)
-    canvas.set_image(big_pix)
+    mono_LSM(UBUB, S, a, l, 4 )
+    ax[0,0].imshow(ind.to_numpy(), origin='lower')
+    with io.BytesIO() as io_buf:
+        fig.savefig(io_buf, format='raw', dpi=DPI)
+        io_buf.seek(0)
+        img_arr = np.reshape(np.frombuffer(io_buf.getvalue(), dtype=np.uint8),
+                     newshape=(int(fig.bbox.bounds[3]), int(fig.bbox.bounds[2]), -1))
+    # pixels.from_numpy(img_arr.astype(np.float32))
+    canvas.set_image(np.ascontiguousarray(np.transpose(img_arr.astype(np.uint8),axes=(1,0,2))))
     window.show()
 print('')
 
