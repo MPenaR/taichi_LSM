@@ -1,11 +1,12 @@
 from pathlib import Path
-
+from time import perf_counter
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import colormaps
 import numpy as np
 import numpy.typing as npt
 import taichi as ti
 from scipy.special import j0, y0
+
 
 from databases import FresnelDatabase
 
@@ -20,12 +21,12 @@ database.load(Path("../Fresnel_Data") / "uTM_shaped.txt")
 
 FF = database.FarField()
 
-M = 100
-N = 100
+M = 200
+N = 200
 
 res = (M,N)
 
-Lx = 0.3
+Lx = 0.1
 Ly = Lx * N / M
 
 x_R, y_R = database.r_R
@@ -33,59 +34,87 @@ N_E = database.N_E
 N_F = database.N_F
 kappa = database.kappa
 
-#f_ID = 7
-# k[f_ID] = kappa
+u, s, _ = np.linalg.svd(FF, full_matrices=True)
 
 
+x = np.linspace(-Lx,Lx,M)
+y = np.linspace(-Ly,Ly,N)
+X, Y = np.meshgrid(x,y,indexing='ij')
 
-# x = np.linspace(-Lx,Lx,M)
-# y = np.linspace(-Ly,Ly,N)
-# X, Y = np.meshgrid(x,y,indexing='ij')
+r_x = np.subtract.outer(X, x_R)
+r_y = np.subtract.outer(Y, y_R)
 
 
-u, s, vh = np.linalg.svd(FF, full_matrices=True)
+# HERE IS THE BOTLE NECK
+def h0(x : npt.NDArray[np.float64]) ->  npt.NDArray[np.complex128] : 
+    return j0(x) + 1j*y0(x)
+
+b =  1j/4 * h0(np.multiply.outer( kappa, np.sqrt( r_x**2 + r_y**2) ))
+
+#t1 = perf_counter()
+# b_R = -1/4 * y0(np.multiply.outer( kappa, np.sqrt( r_x**2 + r_y**2) ))
+# b_I =  1/4 * j0(np.multiply.outer( kappa, np.sqrt( r_x**2 + r_y**2) ))
+
+#t2  = perf_counter()
+#print(f'{t2 - t1 = }')
 
 
+ubub = np.zeros((*res, N_F, N_E), dtype=np.float64)
+
+for k in range(len(kappa)):
+    for n in range(N_E):
+        ubub[:,:,k,n] = np.abs(np.tensordot(np.conj(u[k,:,n]), b[k,:,:,:], axes=( (0), (-1))))**2
 
 ggui = True
 arch = ti.vulkan if ggui else ti.gpu
 ti.init(arch=arch, unrolling_limit=0)
 
+UBUB = ti.ndarray( dtype= ti.types.matrix(n=N_F, m=N_E, dtype=ti.f64), shape = res)
+
+UBUB.from_numpy(ubub)
 
 
-# HERE IS THE BOTLE NECK
-#b = 1j/4 * hankel1(0, np.multiply.outer( kappa, np.sqrt( r_x**2 + r_y**2) ))
+window = ti.ui.Window(f'single frequency', res=res)
+canvas = window.get_canvas()
 
-mat_N_E_N_F = dtype=ti.types.matrix( n = N_F, m = N_E, dtype=ti.f32)
+pixels = ti.field(dtype=ti.f32, shape = res)
+ind = ti.field(dtype=ti.f32, shape = res)
 
-ub2 = ti.field( dtype= mat_N_E_N_F, shape=res)
-
-
-X, Y = np.meshgrid( np.linspace(-Lx,Lx,M, dtype=np.float32), np.linspace(-Ly,Ly,N, dtype=np.float32), indexing='ij')
-x = ti.field(dtype=ti.f32, shape=res)
-x.from_numpy(X)
-y = ti.field(dtype=ti.f32, shape=res)
-y.from_numpy(Y)
-
-k = ti.Vector(kappa)
-
-
-vec32 = npt.NDArray[np.float32]
-def compute_b( X : vec32, Y : vec32, x_R : vec32, y_R : vec32, k : vec32) -> tuple[vec32, vec32]:
-    r_x = np.subtract.outer(X, x_R)
-    r_y = np.subtract.outer(Y, y_R)
-    kr = np.multiply.outer( k, np.sqrt( r_x**2 + r_y**2))
-    b_R = -1 / 4 * y0(kr)
-    b_I =  1 / 4 * j0(kr)
-    return ( b_R, b_I )
-
-b_R, b_I = compute_b( X, Y, x_R, y_R, kappa)
-
-b = ti.Narray(ti.types.vector(n=2,dtype=ti.f32), shape=(N_F, *res))
-
+S = ti.ndarray(dtype=ti.f64, shape=(N_F, N_E))
+S.from_numpy(s)
 
 @ti.kernel
-def compute_ub2( b : ti.ndarray):
+def LSM( UBUB : ti.types.ndarray(), S : ti.types.ndarray(), a : ti.f32, l : ti.f32, k : int ):
+    for i, j in pixels:
+        for n in ti.static(range(N_E)):
+            ind[i,j] += (S[k,n]/(S[k,n]**2 + a))**2*UBUB[i,j][k,n]
+        ind[i,j] = 1. / ti.sqrt(ind[i,j])
+        #ind[i,j] = 1. if ind[i,j] > l else 0.
+        pixels[i,j] = ti.u8(255) if ind[i,j] > l else ti.u8(0)
+
+#Visualization
+while window.running:
+    mouse_x, mouse_y = window.get_cursor_pos()
+    l = 0.01*(mouse_y) + 0.988
+    a = 1E-1*mouse_x
+    print(f'{l= : .6f} {a= : .6f}', end='\r')
+    LSM(UBUB, S, a, l, 5 )
+    canvas.set_image(pixels)
+    window.show()
+print('')
+
+
+
+
+
+
+# b_R, b_I = compute_b( X, Y, x_R, y_R, kappa)
+
+# b = ti.Narray(ti.types.vector(n=2,dtype=ti.f32), shape=(N_F, *res))
+
+
+# @ti.kernel
+# def compute_ub2( b : ti.ndarray):
 
 
 
